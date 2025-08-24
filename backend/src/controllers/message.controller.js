@@ -43,6 +43,9 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
+      if (!process.env.CLOUDINARY_CLOUD_NAME) {
+        return res.status(500).json({ error: "Image upload not configured" });
+      }
       // Upload base64 image to cloudinary
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;

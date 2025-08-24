@@ -1,8 +1,5 @@
 # ✨ Full Stack Realtime Chat App ✨
 
-![Demo App](/frontend/public/screenshot-for-readme.png)
-
-[Video Tutorial on Youtube](https://youtu.be/ntKkVrQqBYY)
 
 Highlights:
 
@@ -17,8 +14,21 @@ Highlights:
 
 ### Setup .env file
 
+**Important**: You need to set up a MongoDB database before running the application.
+
+#### Option 1: MongoDB Atlas (Recommended - Free)
+1. Go to [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a free account and cluster
+3. Get your connection string
+4. Replace `<username>`, `<password>`, and `<cluster>` in the connection string
+
+#### Option 2: Local MongoDB
+1. Install MongoDB on your system
+2. Start the MongoDB service (`mongod`)
+3. Use the local connection string
+
 ```js
-MONGODB_URI=...
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/chat-app?retryWrites=true&w=majority
 PORT=5001
 JWT_SECRET=...
 

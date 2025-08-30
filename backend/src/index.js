@@ -87,6 +87,24 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Debug endpoint to see online users
+app.get("/api/debug/online-users", async (req, res) => {
+  try {
+    // Import the userSocketMap from socket.js
+    const { userSocketMap } = await import("./lib/socket.js");
+    
+    res.status(200).json({ 
+      onlineUsers: Object.keys(userSocketMap),
+      totalConnections: Object.keys(userSocketMap).length,
+      userSocketMap,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in debug endpoint:", error);
+    res.status(500).json({ error: "Failed to get online users" });
+  }
+});
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../../frontend/dist")));
 

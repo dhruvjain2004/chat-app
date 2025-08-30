@@ -131,6 +131,8 @@ export const useAuthStore = create((set, get) => ({
     if (!authUser || get().socket?.connected) return;
 
     console.log("Connecting socket to:", BASE_URL);
+    console.log("User ID for socket:", authUser._id);
+    
     const socket = io(BASE_URL, {
       query: {
         userId: authUser._id,
@@ -144,7 +146,8 @@ export const useAuthStore = create((set, get) => ({
     set({ socket: socket });
 
     socket.on("connect", () => {
-      console.log("Socket connected successfully");
+      console.log("Socket connected successfully with ID:", socket.id);
+      console.log("User ID:", authUser._id);
     });
 
     socket.on("connect_error", (error) => {
@@ -164,6 +167,7 @@ export const useAuthStore = create((set, get) => ({
     });
 
     socket.on("getOnlineUsers", (userIds) => {
+      console.log("Received online users:", userIds);
       set({ onlineUsers: userIds });
     });
   },

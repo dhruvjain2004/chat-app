@@ -26,6 +26,7 @@ io.on("connection", (socket) => {
   if (userId) {
     userSocketMap[userId] = socket.id;
     console.log(`User ${userId} mapped to socket ${socket.id}`);
+    console.log(`Current online users:`, Object.keys(userSocketMap));
   } else {
     console.warn("Socket connected without userId");
   }
@@ -35,9 +36,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
-    if (userId) {
-      delete userSocketMap[userId];
-      console.log(`User ${userId} removed from socket map`);
+    // Find and remove the user from the map
+    const disconnectedUserId = Object.keys(userSocketMap).find(key => userSocketMap[key] === socket.id);
+    if (disconnectedUserId) {
+      delete userSocketMap[disconnectedUserId];
+      console.log(`User ${disconnectedUserId} removed from socket map`);
+      console.log(`Remaining online users:`, Object.keys(userSocketMap));
     }
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
@@ -47,4 +51,4 @@ io.on("connection", (socket) => {
   });
 });
 
-export { io, app, server };
+export { io, app, server, userSocketMap };

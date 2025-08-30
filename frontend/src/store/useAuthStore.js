@@ -13,6 +13,7 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
+  isOnline: navigator.onLine,
 
   checkAuth: async () => {
     try {
@@ -168,5 +169,27 @@ export const useAuthStore = create((set, get) => ({
   },
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
+  },
+
+  // Network status monitoring
+  checkNetworkStatus: () => {
+    const updateOnlineStatus = () => {
+      const isOnline = navigator.onLine;
+      set({ isOnline });
+      console.log('Network status changed:', isOnline ? 'Online' : 'Offline');
+      
+      if (isOnline && get().authUser) {
+        // Try to reconnect socket when back online
+        get().connectSocket();
+      }
+    };
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
   },
 }));

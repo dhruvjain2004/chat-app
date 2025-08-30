@@ -15,14 +15,16 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers, checkNetworkStatus } = useAuthStore();
   const { theme } = useThemeStore();
 
   console.log({ onlineUsers });
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    const cleanup = checkNetworkStatus();
+    return cleanup;
+  }, [checkAuth, checkNetworkStatus]);
 
   console.log({ authUser });
 

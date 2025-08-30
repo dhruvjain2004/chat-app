@@ -16,12 +16,18 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
+      console.log("Checking auth with URL:", axiosInstance.defaults.baseURL);
       const res = await axiosInstance.get("/auth/check");
 
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
-      console.log("Error in checkAuth:", error);
+      console.error("Error in checkAuth:", error);
+      if (error.response?.status === 401) {
+        console.log("User not authenticated, setting authUser to null");
+      } else {
+        console.error("Unexpected error during auth check:", error.message);
+      }
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -36,7 +42,16 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Account created successfully");
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Signup error:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.code === "ERR_NETWORK") {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     } finally {
       set({ isSigningUp: false });
     }
@@ -51,7 +66,16 @@ export const useAuthStore = create((set, get) => ({
 
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Login error:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.code === "ERR_NETWORK") {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     } finally {
       set({ isLoggingIn: false });
     }

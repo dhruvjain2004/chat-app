@@ -14,6 +14,16 @@ import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error("❌ Missing required environment variables:", missingEnvVars);
+  console.error("Please set these variables in your .env file or environment");
+  process.exit(1);
+}
+
 const PORT = process.env.PORT || 5001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,10 +85,16 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log("🚀 Server is running on PORT:", PORT);
   console.log("🌍 Environment:", process.env.NODE_ENV || "development");
   console.log("🔒 CORS Origins:", allowedOrigins);
   console.log("📡 Socket.io CORS enabled for:", ["http://localhost:5173", "https://chat-app-1-l966.onrender.com", "https://chat-app-ruddy-tau.vercel.app"]);
-  connectDB();
+  
+  const dbConnected = await connectDB();
+  if (dbConnected) {
+    console.log("✅ Server is fully operational with database connection");
+  } else {
+    console.log("⚠️  Server is running but database connection failed");
+  }
 });

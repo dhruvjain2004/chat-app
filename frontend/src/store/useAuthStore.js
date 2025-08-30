@@ -25,6 +25,8 @@ export const useAuthStore = create((set, get) => ({
       console.error("Error in checkAuth:", error);
       if (error.response?.status === 401) {
         console.log("User not authenticated, setting authUser to null");
+      } else if (error.code === "ERR_NETWORK") {
+        console.error("Network error during auth check");
       } else {
         console.error("Unexpected error during auth check:", error.message);
       }
@@ -88,7 +90,16 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Logout error:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.code === "ERR_NETWORK") {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     }
   },
 
@@ -99,8 +110,16 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {
-      console.log("error in update profile:", error);
-      toast.error(error.response.data.message);
+      console.error("Error in update profile:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.code === "ERR_NETWORK") {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -115,6 +134,9 @@ export const useAuthStore = create((set, get) => ({
       query: {
         userId: authUser._id,
       },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
     socket.connect();
 
@@ -126,6 +148,18 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+      if (reason === "io server disconnect") {
+        // Server disconnected, try to reconnect
+        socket.connect();
+      }
+    });
+
+    socket.on("reconnect", (attemptNumber) => {
+      console.log("Socket reconnected after", attemptNumber, "attempts");
     });
 
     socket.on("getOnlineUsers", (userIds) => {

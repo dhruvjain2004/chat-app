@@ -42,11 +42,29 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
+    // Validate input
+    if (!text && !image) {
+      return res.status(400).json({ error: "Message must contain text or image" });
+    }
+
+    if (text && typeof text !== 'string') {
+      return res.status(400).json({ error: "Text must be a string" });
+    }
+
+    if (text && text.trim().length === 0) {
+      return res.status(400).json({ error: "Text cannot be empty" });
+    }
+
     let imageUrl = null;
 
     if (image) {
-      if (!process.env.CLOUDINARY_CLOUD_NAME) {
-        return res.status(500).json({ error: "Image upload not configured" });
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        console.error("Cloudinary configuration missing:", {
+          cloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+          apiKey: !!process.env.CLOUDINARY_API_KEY,
+          apiSecret: !!process.env.CLOUDINARY_API_SECRET
+        });
+        return res.status(500).json({ error: "Image upload service not configured" });
       }
 
       try {
